@@ -1557,7 +1557,39 @@ let currentMachineId = null;
 let setCounter = 0;
 let todayRoutine = [];
 
-function saveState() { localStorage.setItem('gymMastery', JSON.stringify(state)); }
+function saveState() {
+  localStorage.setItem('gymMastery', JSON.stringify(state));
+  if (typeof sbClient !== 'undefined' && sbClient && typeof currentUser !== 'undefined' && currentUser) {
+    _autoSyncToCloud();
+  }
+}
+
+let _autoSyncTimer = null;
+function _autoSyncToCloud() {
+  clearTimeout(_autoSyncTimer);
+  _autoSyncTimer = setTimeout(async () => {
+    try {
+      const apiKey = localStorage.getItem('gymMasteryApiKey') || '';
+      const payload = {
+        user_id: currentUser.id,
+        state_data: JSON.stringify(state),
+        profile_data: JSON.stringify(profile),
+        layout_data: JSON.stringify(mapLayout),
+        api_key_data: apiKey ? btoa(apiKey) : '',
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await sbClient
+        .from('gym_mastery_data')
+        .upsert(payload, { onConflict: 'user_id' });
+      if (!error) {
+        const now = new Date().toLocaleString('ko-KR');
+        localStorage.setItem('gymLastSync', now);
+        const el = document.getElementById('cloudSyncStatus');
+        if (el) el.textContent = '✅ 마지막 동기화: ' + now;
+      }
+    } catch(e) {}
+  }, 3000);
+}
 
 // ── MASTERY ──
 function getMachineXp(id) { return state.machineXp[id] || 0; }
@@ -3925,6 +3957,10 @@ function loadSettingsForm() {
   document.getElementById('setApiStatus').style.color = key ? '#1D9E75' : 'var(--muted)';
   // 클라우드 Auth UI 갱신
   updateAuthUI(currentUser);
+  // 마지막 동기화 시각
+  const lastSync = localStorage.getItem('gymLastSync');
+  const el = document.getElementById('cloudSyncStatus');
+  if (el) el.textContent = lastSync ? '✅ 마지막 동기화: ' + lastSync : '아직 동기화 안됨';
 }
 
 function updateBmiDisplay() {
@@ -4238,11 +4274,13 @@ async function syncToCloud() {
   const statusEl = document.getElementById('cloudSyncStatus');
   if (statusEl) statusEl.textContent = '⬆️ 저장 중...';
   try {
+    const apiKey = localStorage.getItem('gymMasteryApiKey') || '';
     const payload = {
       user_id: currentUser.id,
       state_data: JSON.stringify(state),
       profile_data: JSON.stringify(profile),
       layout_data: JSON.stringify(mapLayout),
+      api_key_data: apiKey ? btoa(apiKey) : '',
       updated_at: new Date().toISOString()
     };
     const { error } = await sbClient
@@ -4250,7 +4288,8 @@ async function syncToCloud() {
       .upsert(payload, { onConflict: 'user_id' });
     if (error) throw error;
     const now = new Date().toLocaleString('ko-KR');
-    if (statusEl) statusEl.textContent = `✅ 마지막 저장: ${now}`;
+    localStorage.setItem('gymLastSync', now);
+    if (statusEl) statusEl.textContent = '✅ 마지막 동기화: ' + now;
     showToast('☁️ 클라우드에 저장됐어요!');
   } catch(e) {
     if (statusEl) statusEl.textContent = '⚠️ 저장 실패: ' + e.message;
@@ -4286,9 +4325,13 @@ async function syncFromCloud() {
       mapLayout = JSON.parse(data.layout_data);
       localStorage.setItem('gymLayout', JSON.stringify({ _version: LAYOUT_VERSION, data: mapLayout }));
     }
+    if (data.api_key_data) {
+      try { localStorage.setItem('gymMasteryApiKey', atob(data.api_key_data)); } catch(e) {}
+    }
     renderAll();
     const updated = new Date(data.updated_at).toLocaleString('ko-KR');
-    if (statusEl) statusEl.textContent = `✅ 마지막 동기화: ${updated}`;
+    localStorage.setItem('gymLastSync', updated);
+    if (statusEl) statusEl.textContent = '✅ 마지막 동기화: ' + updated;
     showToast('☁️ 클라우드에서 불러왔어요!');
   } catch(e) {
     if (statusEl) statusEl.textContent = '⚠️ 불러오기 실패: ' + e.message;
