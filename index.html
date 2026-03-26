@@ -828,7 +828,7 @@ body {
       <div id="cycleBalls" style="display:flex;gap:5px;align-items:center;"></div>
     </div>
     <div class="total-xp">⚡ <span id="totalXp">0</span> XP</div>
-    <span onclick="location.reload(true)" title="새로고침" style="font-size:7px;color:rgba(255,255,255,0.18);font-family:'Space Mono',monospace;align-self:center;cursor:pointer;">v1.2.0🔄</span>
+    <span onclick="location.reload(true)" title="새로고침" style="font-size:9px;color:rgba(255,255,255,0.45);font-family:'Space Mono',monospace;align-self:center;cursor:pointer;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:2px 5px;">v1.2.1</span>
     <button id="authBtn" onclick="handleAuthBtn()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer;" title="로그인">🔐</button>
     <button onclick="goToSettings()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--muted);font-size:12px;padding:4px 8px;cursor:pointer;" title="설정">⚙️</button>
   </div>
@@ -1569,13 +1569,11 @@ function _autoSyncToCloud() {
   clearTimeout(_autoSyncTimer);
   _autoSyncTimer = setTimeout(async () => {
     try {
-      const apiKey = localStorage.getItem('gymMasteryApiKey') || '';
       const payload = {
         user_id: currentUser.id,
         state_data: JSON.stringify(state),
         profile_data: JSON.stringify(profile),
         layout_data: JSON.stringify(mapLayout),
-        api_key_data: apiKey ? btoa(apiKey) : '',
         updated_at: new Date().toISOString()
       };
       const { error } = await sbClient
@@ -4274,13 +4272,11 @@ async function syncToCloud() {
   const statusEl = document.getElementById('cloudSyncStatus');
   if (statusEl) statusEl.textContent = '⬆️ 저장 중...';
   try {
-    const apiKey = localStorage.getItem('gymMasteryApiKey') || '';
     const payload = {
       user_id: currentUser.id,
       state_data: JSON.stringify(state),
       profile_data: JSON.stringify(profile),
       layout_data: JSON.stringify(mapLayout),
-      api_key_data: apiKey ? btoa(apiKey) : '',
       updated_at: new Date().toISOString()
     };
     const { error } = await sbClient
@@ -4324,9 +4320,6 @@ async function syncFromCloud() {
     if (data.layout_data) {
       mapLayout = JSON.parse(data.layout_data);
       localStorage.setItem('gymLayout', JSON.stringify({ _version: LAYOUT_VERSION, data: mapLayout }));
-    }
-    if (data.api_key_data) {
-      try { localStorage.setItem('gymMasteryApiKey', atob(data.api_key_data)); } catch(e) {}
     }
     renderAll();
     const updated = new Date(data.updated_at).toLocaleString('ko-KR');
@@ -4378,7 +4371,7 @@ function initPWA() {
   // Service Worker 등록
   if ('serviceWorker' in navigator) {
     const swCode = `
-const CACHE = 'gym-mastery-v1.2.0';
+const CACHE = 'gym-mastery-v1.2.1';
 const ASSETS = ['/'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
