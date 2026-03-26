@@ -828,7 +828,7 @@ body {
       <div id="cycleBalls" style="display:flex;gap:5px;align-items:center;"></div>
     </div>
     <div class="total-xp">⚡ <span id="totalXp">0</span> XP</div>
-    <span onclick="location.reload(true)" title="새로고침" style="font-size:9px;color:rgba(255,255,255,0.45);font-family:'Space Mono',monospace;align-self:center;cursor:pointer;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:2px 5px;">v1.2.1</span>
+    <span onclick="location.reload(true)" title="새로고침" style="font-size:9px;color:rgba(255,255,255,0.45);font-family:'Space Mono',monospace;align-self:center;cursor:pointer;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:2px 5px;">v1.2.2</span>
     <button id="authBtn" onclick="handleAuthBtn()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer;" title="로그인">🔐</button>
     <button onclick="goToSettings()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--muted);font-size:12px;padding:4px 8px;cursor:pointer;" title="설정">⚙️</button>
   </div>
@@ -3085,15 +3085,19 @@ document.getElementById('apiKeyOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('apiKeyOverlay')) closeApiKeyModal();
 });
 
-// ── Claude API 공통 호출 함수 ──
+// ── Claude API 공통 호출 함수 (Supabase Edge Function 프록시 경유) ──
+const CLAUDE_PROXY = 'https://xpnpsydexfxwlowfkzld.supabase.co/functions/v1/claude-proxy';
+
 async function callClaude(prompt, maxTokens = 500) {
   const key = getApiKey();
-  const headers = { 'Content-Type': 'application/json' };
-  if (key) headers['x-api-key'] = key;
+  if (!key) throw new Error('API_KEY_MISSING');
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await fetch(CLAUDE_PROXY, {
     method: 'POST',
-    headers,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+    },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: maxTokens,
@@ -4371,7 +4375,7 @@ function initPWA() {
   // Service Worker 등록
   if ('serviceWorker' in navigator) {
     const swCode = `
-const CACHE = 'gym-mastery-v1.2.1';
+const CACHE = 'gym-mastery-v1.2.2';
 const ASSETS = ['/'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
