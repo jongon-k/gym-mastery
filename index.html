@@ -947,6 +947,20 @@ body {
   width: 8px; height: 8px;
   border-radius: 2px;
 }
+
+@media (max-width: 480px) {
+  #machineGrid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .machine-card {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
 </style>
 </head>
 <body>
