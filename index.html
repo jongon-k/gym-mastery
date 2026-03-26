@@ -4131,15 +4131,15 @@ const SUPABASE_URL = 'https://xnpnsydexfxwlowfkzld.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_F_TCTA9HsfmJhMAG5GfhlA_tEXBAH-R';
 const GOOGLE_CLIENT_ID = '510892922090-hr39gov1pf6c7nu547unqjkcr0eq8vgn.apps.googleusercontent.com';
 
-let supabase = null;
+let sbClient = null;  // supabase → sbClient 로 변경 (전역 window.supabase 충돌 방지)
 let currentUser = null;
 
 // ── Supabase 초기화 ──
 function initSupabase() {
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     // 인증 상태 감지
-    supabase.auth.onAuthStateChange((event, session) => {
+    sbClient.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         currentUser = session.user;
         updateAuthUI(session.user);
@@ -4148,8 +4148,7 @@ function initSupabase() {
         updateAuthUI(null);
       }
     });
-    // 현재 세션 확인
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    sbClient.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         currentUser = session.user;
         updateAuthUI(session.user);
@@ -4162,9 +4161,9 @@ function initSupabase() {
 
 // ── Google 로그인 ──
 async function signInWithGoogle() {
-  if (!supabase) { showToast('⚠️ 인증 서비스를 불러오는 중이에요'); return; }
+  if (!sbClient) { showToast('⚠️ 인증 서비스를 불러오는 중이에요'); return; }
   try {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await sbClient.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.href,
@@ -4179,15 +4178,14 @@ async function signInWithGoogle() {
 
 // ── 로그아웃 ──
 async function signOut() {
-  if (!supabase) return;
-  await supabase.auth.signOut();
+  if (!sbClient) return;
+  await sbClient.auth.signOut();
   showToast('👋 로그아웃됐어요');
 }
 
 // ── 헤더 버튼 처리 ──
 function handleAuthBtn() {
   if (currentUser) {
-    // 설정 탭으로 이동해 클라우드 섹션 보여주기
     goToSettings();
     setTimeout(() => {
       const el = document.getElementById('cloudSyncSection');
@@ -4236,7 +4234,7 @@ function updateAuthUI(user) {
 
 // ── 클라우드에 저장 ──
 async function syncToCloud() {
-  if (!supabase || !currentUser) { showToast('⚠️ 먼저 로그인해주세요'); return; }
+  if (!sbClient || !currentUser) { showToast('⚠️ 먼저 로그인해주세요'); return; }
   const statusEl = document.getElementById('cloudSyncStatus');
   if (statusEl) statusEl.textContent = '⬆️ 저장 중...';
   try {
@@ -4247,7 +4245,7 @@ async function syncToCloud() {
       layout_data: JSON.stringify(mapLayout),
       updated_at: new Date().toISOString()
     };
-    const { error } = await supabase
+    const { error } = await sbClient
       .from('gym_mastery_data')
       .upsert(payload, { onConflict: 'user_id' });
     if (error) throw error;
@@ -4263,11 +4261,11 @@ async function syncToCloud() {
 
 // ── 클라우드에서 불러오기 ──
 async function syncFromCloud() {
-  if (!supabase || !currentUser) { showToast('⚠️ 먼저 로그인해주세요'); return; }
+  if (!sbClient || !currentUser) { showToast('⚠️ 먼저 로그인해주세요'); return; }
   const statusEl = document.getElementById('cloudSyncStatus');
   if (statusEl) statusEl.textContent = '⬇️ 불러오는 중...';
   try {
-    const { data, error } = await supabase
+    const { data, error } = await sbClient
       .from('gym_mastery_data')
       .select('*')
       .eq('user_id', currentUser.id)
