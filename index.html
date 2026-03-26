@@ -80,6 +80,136 @@ body {
   font-family: 'Space Mono', monospace;
   font-size: 11px;
   color: var(--gold);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.header {
+  gap: 10px;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #f3f4f6, #9ca3af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-stats {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.header-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  box-sizing: border-box;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+#cycleGauge.header-chip {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+#cycleGauge .cycle-label {
+  font-size: 8px;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.6px;
+}
+
+.xp-chip {
+  gap: 4px;
+}
+
+.header-version {
+  font-size: 9px;
+  color: rgba(255,255,255,0.52);
+  font-family: 'Space Mono', monospace;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+}
+
+.header-icon-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.target-btn {
+  padding: 6px 10px;
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .logo {
+    font-size: 15px;
+    letter-spacing: 1px;
+    max-width: 90px;
+    line-height: 1;
+  }
+
+  .header-stats {
+    gap: 4px;
+  }
+
+  .header-chip {
+    min-height: 25px;
+    padding: 3px 6px;
+  }
+
+  #cycleGauge .cycle-label {
+    font-size: 7px;
+  }
+
+  .total-xp {
+    font-size: 9px;
+  }
+
+  .header-version {
+    font-size: 8px;
+  }
+
+  .header-icon-btn {
+    padding: 3px 7px;
+    font-size: 11px;
+  }
+
+  #targetBtns {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px !important;
+  }
+
+  .target-btn {
+    width: 100%;
+    padding: 7px 4px;
+    font-size: 11px;
+    text-align: center;
+  }
 }
 
 /* ── NAV TABS ── */
@@ -822,15 +952,14 @@ body {
 <div class="header">
   <div class="logo">GYM MASTERY</div>
   <div class="header-stats">
-    <!-- 사이클 구슬 -->
-    <div id="cycleGauge" style="display:flex;flex-direction:column;gap:3px;align-items:center;">
-      <div style="font-size:7px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:0.5px;">CYCLE</div>
-      <div id="cycleBalls" style="display:flex;gap:5px;align-items:center;"></div>
+    <div id="cycleGauge" class="header-chip">
+      <div class="cycle-label">CYCLE</div>
+      <div id="cycleBalls" style="display:flex;gap:4px;align-items:center;"></div>
     </div>
-    <div class="total-xp">⚡ <span id="totalXp">0</span> XP</div>
-    <span onclick="location.reload(true)" title="새로고침" style="font-size:9px;color:rgba(255,255,255,0.45);font-family:'Space Mono',monospace;align-self:center;cursor:pointer;letter-spacing:0.5px;border:1px solid rgba(255,255,255,0.12);border-radius:4px;padding:2px 5px;">v1.2.2</span>
-    <button id="authBtn" onclick="handleAuthBtn()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--muted);font-size:11px;padding:4px 8px;cursor:pointer;" title="로그인">🔐</button>
-    <button onclick="goToSettings()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:var(--muted);font-size:12px;padding:4px 8px;cursor:pointer;" title="설정">⚙️</button>
+    <div class="header-chip xp-chip total-xp">⚡ <span id="totalXp">0</span> XP</div>
+    <span onclick="location.reload(true)" title="새로고침" class="header-chip header-version">v1.2.2</span>
+    <button id="authBtn" onclick="handleAuthBtn()" class="header-icon-btn" title="로그인">🔐</button>
+    <button onclick="goToSettings()" class="header-icon-btn header-settings-btn" title="설정">⚙️</button>
   </div>
 </div>
 
@@ -1000,12 +1129,12 @@ body {
     <!-- 부위 버튼 -->
     <div style="display:flex;flex-wrap:wrap;gap:6px;" id="targetBtns">
       <button class="target-btn active" data-target="전체">전체</button>
-      <button class="target-btn" data-target="가슴">💪 가슴</button>
-      <button class="target-btn" data-target="등">🦅 등</button>
-      <button class="target-btn" data-target="하체">🦵 하체</button>
-      <button class="target-btn" data-target="어깨">🔝 어깨</button>
-      <button class="target-btn" data-target="둔근">🍑 둔근</button>
-      <button class="target-btn" data-target="복근">🔥 복근</button>
+      <button class="target-btn" data-target="가슴">가슴</button>
+      <button class="target-btn" data-target="등">등</button>
+      <button class="target-btn" data-target="하체">하체</button>
+      <button class="target-btn" data-target="어깨">어깨</button>
+      <button class="target-btn" data-target="둔근">둔근</button>
+      <button class="target-btn" data-target="복근">복근</button>
     </div>
   </div>
 
